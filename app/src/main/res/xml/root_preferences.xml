@@ -1,0 +1,25 @@
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <PreferenceCategory android:title="Modo de juego">
+        <ListPreference
+            android:key="game_mode"
+            android:title="Modo de juego"
+            android:summary="Selecciona el modo de juego"
+            android:entries="@array/game_mode_options"
+            android:entryValues="@array/game_mode_values"
+            android:defaultValue="normal" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Puntuaciones">
+        <EditTextPreference
+            android:key="high_score"
+            android:title="Puntuación más alta"
+            android:summary="La puntuación más alta obtenida"
+            android:defaultValue="0"
+            android:inputType="number"
+            android:selectAllOnFocus="true" />
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>

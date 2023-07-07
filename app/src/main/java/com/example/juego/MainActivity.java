@@ -1,5 +1,6 @@
 package com.example.juego;
 
+import android.content.Intent;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -28,6 +29,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ImageView heart3ImageView;
     private TextView instructionTextView;
     private Button startButton;
+    private Button preferencias;
+    private Button leyenda;
 
     private MediaPlayer mediaPlayerBackground;
     private MediaPlayer mediaPlayerPress;
@@ -40,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Sensor accelerometer;
     private boolean shakeDetected;
     private boolean shakeInProgress;
+    private boolean shakeActionCompleted;
 
     private int currentLevel;
     private int currentScore;
@@ -57,6 +61,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private static final int MIN_TIMER_SECONDS = 4;
 
     private int currentTimerSeconds;
+    private GestureType gestureType;
+
+    private enum GestureType {
+        PRESS,
+        SWIPE,
+        SHAKE
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,6 +76,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         levelTextView = findViewById(R.id.levelTextView);
         scoreTextView = findViewById(R.id.scoreTextView);
+        preferencias = findViewById(R.id.Preferences);
+        leyenda = findViewById(R.id.btn_leyenda);
+
         heart1ImageView = findViewById(R.id.heart1ImageView);
         heart2ImageView = findViewById(R.id.heart2ImageView);
         heart3ImageView = findViewById(R.id.heart3ImageView);
@@ -82,12 +96,31 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         shakeDetected = false;
         shakeInProgress = false;
+        shakeActionCompleted = false;
 
         random = new Random();
         instructions = new ArrayList<>();
         instructions.add(getString(R.string.instruction_press));
         instructions.add(getString(R.string.instruction_swipe));
         instructions.add(getString(R.string.instruction_shake));
+
+        leyenda.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, leyenda.class);
+                startActivity(intent);
+            }
+        });
+
+
+
+        preferencias.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
+                startActivity(intent);
+            }
+        });
 
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -166,16 +199,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     private boolean isCorrectAction() {
         String currentInstruction = instructions.get(currentInstructionIndex);
-
-        if (currentInstruction.equals(getString(R.string.instruction_press)) && !shakeInProgress) {
-            return true;
-        } else if (currentInstruction.equals(getString(R.string.instruction_swipe)) && !shakeInProgress) {
-            return true;
-        } else if (currentInstruction.equals(getString(R.string.instruction_shake)) && shakeInProgress) {
-            return true;
+        if (currentInstruction.equals(getString(R.string.instruction_shake))) {
+            return shakeActionCompleted;
+        } else {
+            return currentInstruction.equals(getString(R.string.instruction_press)) && gestureType == GestureType.PRESS ||
+                    currentInstruction.equals(getString(R.string.instruction_swipe)) && gestureType == GestureType.SWIPE;
         }
-
-        return false;
     }
 
     private void endGame() {
@@ -195,6 +224,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         resetLivesImageViews();
         stopTimer();
+        mediaPlayerBackground.stop();
     }
 
     private void updateLevelTextView() {
@@ -285,11 +315,12 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             float x = event.values[0];
 
-            if (x < -8 && !shakeDetected) {
+            if (x < -5 && !shakeDetected) {
                 shakeDetected = true;
-            }else if (x > 8 && shakeDetected) {
+            } else if (x > 5 && shakeDetected) {
                 shakeDetected = false;
                 shakeInProgress = true;
+                shakeActionCompleted = true;
                 checkAction(true);
                 startTimer();
             }
@@ -307,6 +338,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             public void run() {
                 if (shakeInProgress) {
                     shakeInProgress = false;
+                    shakeActionCompleted = false;
                     checkAction(false);
                 }
             }
@@ -322,15 +354,16 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public boolean onSingleTapUp(MotionEvent e) {
+            gestureType = GestureType.PRESS;
             checkAction(true);
             return true;
         }
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
+            gestureType = GestureType.SWIPE;
             checkAction(true);
             return true;
         }
     }
 }
-

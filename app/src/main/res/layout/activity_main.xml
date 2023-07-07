@@ -3,6 +3,16 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
+    <Button
+        android:id="@+id/btn_leyenda"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/instructionTextView"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="92dp"
+        android:text="Modo Leyenda"
+        android:textSize="24sp" />
+
     <TextView
         android:id="@+id/levelTextView"
         android:layout_width="wrap_content"
@@ -61,10 +71,24 @@
         android:id="@+id/startButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Start"
-        android:textSize="24sp"
         android:layout_below="@id/instructionTextView"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="32dp" />
+        android:layout_marginTop="32dp"
+        android:text="Modo Carrera"
+        android:textSize="24sp" />
+
+    <Button
+        android:id="@+id/Preferences"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/instructionTextView"
+        android:layout_alignParentLeft="false"
+        android:layout_alignParentRight="false"
+        android:layout_alignParentBottom="true"
+        android:layout_centerInParent="true"
+        android:layout_marginTop="153dp"
+        android:layout_marginBottom="128dp"
+        android:text="Preferencias"
+        android:textSize="24sp" />
 
 </RelativeLayout>
