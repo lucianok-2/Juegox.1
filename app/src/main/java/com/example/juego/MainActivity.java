@@ -284,15 +284,10 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     public void onSensorChanged(SensorEvent event) {
         if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
             float x = event.values[0];
-            float y = event.values[1];
-            float z = event.values[2];
 
-            // Detectar el agitar del dispositivo
             if (x < -8 && !shakeDetected) {
                 shakeDetected = true;
-            }
-
-            if (x > 8 && shakeDetected) {
+            }else if (x > 8 && shakeDetected) {
                 shakeDetected = false;
                 shakeInProgress = true;
                 checkAction(true);
