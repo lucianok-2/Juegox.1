@@ -11,15 +11,18 @@
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Puntuaciones">
-        <EditTextPreference
-            android:key="high_score"
-            android:title="Puntuación más alta"
-            android:summary="La puntuación más alta obtenida"
-            android:defaultValue="0"
-            android:inputType="number"
-            android:selectAllOnFocus="true" />
+
+        <Preference
+            android:key="high_score_legend"
+            android:title="Puntuación más alta (Leyenda)"
+            android:summary="La puntuación más alta obtenida en el modo Leyenda"
+            android:layout="@layout/custom_preference" />
+
+        <Preference
+            android:key="high_score_career"
+            android:title="Puntuación más alta (Carrera)"
+            android:summary="La puntuación más alta obtenida en el modo Carrera"
+            android:layout="@layout/custom_preference" />
     </PreferenceCategory>
-
-
 
 </PreferenceScreen>

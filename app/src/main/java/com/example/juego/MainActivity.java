@@ -1,6 +1,7 @@
 package com.example.juego;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -8,13 +9,17 @@ import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.view.GestureDetector;
+import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.Preference;
+import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +34,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private ImageView heart3ImageView;
     private TextView instructionTextView;
     private Button startButton;
-    private Button preferencias;
-    private Button leyenda;
 
     private MediaPlayer mediaPlayerBackground;
     private MediaPlayer mediaPlayerPress;
@@ -54,11 +57,13 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private Random random;
     private List<String> instructions;
     private int currentInstructionIndex;
+    private SharedPreferences sharedPreferences;
 
     private GestureDetector gestureDetector;
 
     private static final int MAX_TIMER_SECONDS = 10;
     private static final int MIN_TIMER_SECONDS = 4;
+    private static final int SETTINGS_REQUEST_CODE = 1;
 
     private int currentTimerSeconds;
     private GestureType gestureType;
@@ -66,7 +71,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private enum GestureType {
         PRESS,
         SWIPE,
-        SHAKE
+        SHAKE,
     }
 
     @Override
@@ -76,8 +81,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         levelTextView = findViewById(R.id.levelTextView);
         scoreTextView = findViewById(R.id.scoreTextView);
-        preferencias = findViewById(R.id.Preferences);
-        leyenda = findViewById(R.id.btn_leyenda);
 
         heart1ImageView = findViewById(R.id.heart1ImageView);
         heart2ImageView = findViewById(R.id.heart2ImageView);
@@ -104,7 +107,22 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         instructions.add(getString(R.string.instruction_swipe));
         instructions.add(getString(R.string.instruction_shake));
 
-        leyenda.setOnClickListener(new View.OnClickListener() {
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String gameMode = sharedPreferences.getString("game_mode", "normal");
+        Button btnLeyenda = findViewById(R.id.btn_leyenda);
+        Button btnPreferencias = findViewById(R.id.Preferences);
+
+        if (gameMode.equals("normal")) {
+            btnLeyenda.setVisibility(View.GONE);
+            startButton.setVisibility(View.VISIBLE);
+        } else {
+            btnLeyenda.setVisibility(View.VISIBLE);
+            startButton.setVisibility(View.GONE);
+        }
+
+
+
+        btnLeyenda.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, leyenda.class);
@@ -112,9 +130,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             }
         });
 
-
-
-        preferencias.setOnClickListener(new View.OnClickListener() {
+        btnPreferencias.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, SettingsActivity.class);
@@ -140,6 +156,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         lives = 3;
         gameStarted = true;
         gameOver = false;
+        Button btnPreferencias = findViewById(R.id.Preferences);
+        btnPreferencias.setVisibility(View.GONE);
 
         updateLevelTextView();
         updateScoreTextView();
@@ -210,6 +228,8 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private void endGame() {
         gameStarted = false;
         gameOver = true;
+        Button btnPreferencias = findViewById(R.id.Preferences);
+        btnPreferencias.setVisibility(View.VISIBLE);
 
         shakeDetected = false;
         shakeInProgress = false;
@@ -225,7 +245,26 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         resetLivesImageViews();
         stopTimer();
         mediaPlayerBackground.stop();
+
+        // Obtener el puntaje más alto guardado en las preferencias
+        int highestScore = sharedPreferences.getInt("high_score_carrera", 0);
+
+        // Comparar el puntaje actual con el puntaje más alto
+        if (currentScore > highestScore) {
+            // Actualizar el puntaje más alto en las preferencias
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putInt("high_score_carrera", currentScore);
+            editor.apply();
+        }
     }
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == SETTINGS_REQUEST_CODE && resultCode == RESULT_OK) {
+            // Actualizar la vista de MainActivity aquí
+        }
+    }
+
 
     private void updateLevelTextView() {
         levelTextView.setText(getString(R.string.level, currentLevel));
@@ -295,6 +334,21 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         if (gameStarted && !mediaPlayerBackground.isPlaying()) {
             mediaPlayerBackground.start();
         }
+        sharedPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+        String gameMode = sharedPreferences.getString("game_mode", "normal");
+        Button btnLeyenda = findViewById(R.id.btn_leyenda);
+        Button btnPreferencias = findViewById(R.id.Preferences);
+
+        if (gameMode.equals("normal")) {
+            btnLeyenda.setVisibility(View.GONE);
+            startButton.setVisibility(View.VISIBLE);
+        } else {
+            btnLeyenda.setVisibility(View.VISIBLE);
+            startButton.setVisibility(View.GONE);
+        }
+
+
+
     }
 
     @Override
@@ -366,4 +420,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             return true;
         }
     }
+
+
 }

@@ -1,11 +1,13 @@
 package com.example.juego;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.view.MenuItem;
 
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.preference.EditTextPreference;
 import androidx.preference.ListPreference;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
@@ -39,6 +41,13 @@ public class SettingsActivity extends AppCompatActivity {
             setPreferencesFromResource(R.xml.root_preferences, rootKey);
             sharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext());
             updatePreferenceSummary("game_mode");
+            int highestScoreCarrera = sharedPreferences.getInt("high_score_carrera", 0);
+
+            // Establecer el puntaje más alto del modo carrera como el valor actual de la preferencia
+            EditTextPreference highScoreCarreraPreference = findPreference("high_score_carrera");
+            if (highScoreCarreraPreference != null) {
+                highScoreCarreraPreference.setText(String.valueOf(highestScoreCarrera));
+            }
         }
 
         @Override
@@ -77,9 +86,17 @@ public class SettingsActivity extends AppCompatActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         if (item.getItemId() == android.R.id.home) {
+            updateActivity();
             onBackPressed();
             return true;
         }
         return super.onOptionsItemSelected(item);
     }
+
+    private void updateActivity() {
+        Intent intent = new Intent();
+        setResult(RESULT_OK, intent);
+        finish();
+    }
+
 }
