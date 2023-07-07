@@ -1,11 +1,11 @@
 package com.example.juego;
+
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
@@ -24,7 +24,6 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView levelTextView;
     private TextView scoreTextView;
     private ImageView heart1ImageView;
-
     private ImageView heart2ImageView;
     private ImageView heart3ImageView;
     private TextView instructionTextView;
@@ -40,6 +39,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private SensorManager sensorManager;
     private Sensor accelerometer;
     private boolean shakeDetected;
+    private boolean shakeInProgress;
 
     private int currentLevel;
     private int currentScore;
@@ -52,6 +52,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private int currentInstructionIndex;
 
     private GestureDetector gestureDetector;
+
+    private static final int MAX_TIMER_SECONDS = 10;
+    private static final int MIN_TIMER_SECONDS = 4;
+
+    private int currentTimerSeconds;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,6 +81,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         shakeDetected = false;
+        shakeInProgress = false;
 
         random = new Random();
         instructions = new ArrayList<>();
@@ -125,11 +131,15 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
             // Actualizar el nivel y la puntuación en la interfaz de usuario
             updateLevelTextView();
             updateScoreTextView();
+
+            // Configurar el temporizador
+            currentTimerSeconds = MAX_TIMER_SECONDS - (currentLevel - 1);
+            startTimer();
         }
     }
 
     private void checkAction(boolean actionCompleted) {
-        if (!gameOver) {
+        if (!gameOver && !shakeInProgress) {
             boolean correctAction = actionCompleted && isCorrectAction();
 
             if (correctAction) {
@@ -157,11 +167,11 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private boolean isCorrectAction() {
         String currentInstruction = instructions.get(currentInstructionIndex);
 
-        if (currentInstruction.equals(getString(R.string.instruction_press)) && !shakeDetected) {
+        if (currentInstruction.equals(getString(R.string.instruction_press)) && !shakeInProgress) {
             return true;
-        } else if (currentInstruction.equals(getString(R.string.instruction_swipe)) && !shakeDetected) {
+        } else if (currentInstruction.equals(getString(R.string.instruction_swipe)) && !shakeInProgress) {
             return true;
-        } else if (currentInstruction.equals(getString(R.string.instruction_shake)) && shakeDetected) {
+        } else if (currentInstruction.equals(getString(R.string.instruction_shake)) && shakeInProgress) {
             return true;
         }
 
@@ -173,6 +183,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         gameOver = true;
 
         shakeDetected = false;
+        shakeInProgress = false;
 
         mediaPlayerBackground.stop();
         mediaPlayerDefeat.start();
@@ -183,6 +194,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
         startButton.setText(getString(R.string.start));
 
         resetLivesImageViews();
+        stopTimer();
     }
 
     private void updateLevelTextView() {
@@ -270,24 +282,45 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
     @Override
     public void onSensorChanged(SensorEvent event) {
-        // Obtener los valores del acelerómetro
-        float x = event.values[0];
-        float y = event.values[1];
-        float z = event.values[2];
+        if (event.sensor.getType() == Sensor.TYPE_ACCELEROMETER) {
+            float x = event.values[0];
+            float y = event.values[1];
+            float z = event.values[2];
 
-        // Calcular la aceleración resultante
-        float acceleration = (float) Math.sqrt(x * x + y * y + z * z);
+            // Detectar el agitar del dispositivo
+            if (x < -8 && !shakeDetected) {
+                shakeDetected = true;
+            }
 
-        // Detectar el agitar del dispositivo
-        if (acceleration > 25 && !shakeDetected) {
-            shakeDetected = true;
-            checkAction(true);
+            if (x > 8 && shakeDetected) {
+                shakeDetected = false;
+                shakeInProgress = true;
+                checkAction(true);
+                startTimer();
+            }
         }
     }
 
     @Override
     public void onAccuracyChanged(Sensor sensor, int accuracy) {
         // No se utiliza en este código
+    }
+
+    private void startTimer() {
+        new android.os.Handler().postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (shakeInProgress) {
+                    shakeInProgress = false;
+                    checkAction(false);
+                }
+            }
+        }, currentTimerSeconds * 1000);
+    }
+
+    private void stopTimer() {
+        // Cancelar el temporizador actual
+        // ...
     }
 
     class GestureListener extends GestureDetector.SimpleOnGestureListener {
@@ -300,8 +333,9 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
 
         @Override
         public boolean onFling(MotionEvent e1, MotionEvent e2, float velocityX, float velocityY) {
-            checkAction(false);
+            checkAction(true);
             return true;
         }
     }
 }
+
