@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity implements SensorEventListen
     private TextView levelTextView;
     private TextView scoreTextView;
     private ImageView heart1ImageView;
-    private String si;
+
     private ImageView heart2ImageView;
     private ImageView heart3ImageView;
     private TextView instructionTextView;
