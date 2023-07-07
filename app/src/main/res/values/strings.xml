@@ -1,0 +1,13 @@
+<resources>
+    <string name="app_name">Juego</string>
+    <string name="instruction_press">Presionar</string>
+    <string name="instruction_swipe">Deslizar</string>
+    <string name="instruction_shake">Agitar</string>
+    <string name="level">Level: %1$d</string>
+    <string name="score">Score: %1$d</string>
+    <string name="game_over">Game Over</string>
+    <string name="start">Start</string>
+
+</resources>
+
+
